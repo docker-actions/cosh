@@ -1,6 +1,8 @@
 # cosh
 Docker actions: cosh
 
+See https://github.com/i11/cosh
+
 ## Example
 
 ```bash

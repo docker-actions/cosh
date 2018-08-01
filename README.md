@@ -28,6 +28,11 @@ function cosh {
   if [ ! "x$(pwd)" = "x/dev" ]; then
     dev_args='-v /dev:/dev'
   fi
+  
+  ssh_auth_sock_arg="-e SSH_AUTH_SOCK"
+  if [ ! "x" = "x${SSH_AUTH_SOCK}" ]; then
+    ssh_auth_sock_arg="${ssh_auth_sock_arg} -v ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}"
+  fi
  
   if [ ! -x "${tmp_dir}/docker/docker" ]; then
     # TODO: Do sha256sum verification
@@ -36,7 +41,7 @@ function cosh {
     docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/tar:latest fx $tmp_dir/docker.tar -C $tmp_dir
   fi
 
-  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -w $(pwd) actions/cosh:latest "$@"
+  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -w $(pwd) actions/cosh:latest "$@"
 }
 
 cosh java -- -version

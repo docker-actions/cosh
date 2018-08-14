@@ -1,6 +1,6 @@
 FROM ubuntu:bionic as build
 
-ARG VERSION=0.1.4
+ARG VERSION=0.1.5
 
 ARG PYTHON_MAJOR_VERSION=3
 ARG PYTHON_MINOR_VERSION=6
@@ -11,7 +11,7 @@ ENV ROOTFS /build/rootfs
 ENV DEBIAN_FRONTEND noninteractive
 
 # Build pre-requisites
-RUN bash -c 'mkdir -p ${BUILD_DEBS} ${ROOTFS}/{usr/local/bin}'
+RUN bash -c 'mkdir -p ${BUILD_DEBS} ${ROOTFS}/{sbin,usr/local/bin}'
 
 # Fix permissions
 RUN chown -Rv 100:root $BUILD_DEBS
@@ -39,10 +39,18 @@ RUN apt-get update \
 # /usr/bin/python${PYTHON_MAJOR_VERSION} => /usr/bin/python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION} symlink
 RUN ln -s python${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION} ${ROOTFS}/usr/bin/python${PYTHON_MAJOR_VERSION}
 
+# Move /sbin out of the way
+RUN mv ${ROOTFS}/sbin ${ROOTFS}/sbin.orig \
+      && mkdir -p ${ROOTFS}/sbin \
+      && for b in ${ROOTFS}/sbin.orig/*; do \
+           echo 'cmd=$(basename ${BASH_SOURCE[0]}); exec /sbin.orig/$cmd "$@"' > ${ROOTFS}/sbin/$(basename $b); \
+           chmod +x ${ROOTFS}/sbin/$(basename $b); \
+         done
+
 COPY entrypoint.sh ${ROOTFS}/usr/local/bin/entrypoint.sh
 RUN chmod +x ${ROOTFS}/usr/local/bin/entrypoint.sh
 
-FROM actions/bash:4.4.18-5
+FROM actions/bash:4.4.18-6
 LABEL maintainer = "ilja+docker@bobkevic.com"
 
 ARG ROOTFS=/build/rootfs

@@ -13,7 +13,7 @@ function cosh {
   fi
   
   # TODO: handle $(pwd) == ${TMPDIR} || '/tmp' # for Darwin
-  tmp_dir="${TMPDIR}"
+  tmp_dir="${TMPDIR:-/tmp}"
   if [ "xDarwin" = "x$(uname)" ]; then
     tmp_dir='/tmp'
   fi

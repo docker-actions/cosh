@@ -39,9 +39,13 @@ function cosh {
     docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/curl:latest -L -o $tmp_dir/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-18.06.0-ce.tgz > /dev/null
     docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/gzip:latest -d $tmp_dir/docker.tgz
     docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/tar:latest fx $tmp_dir/docker.tar -C $tmp_dir
+    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.docker-credential-gcloud docker-credential-gcloud \"\$@\"" > $tmp_dir/docker-credential-gcloud
+    chmod +x $tmp_dir/docker-credential-gcloud
+    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.gcloud gcloud \"\$@\"" > $tmp_dir/gcloud
+    chmod +x $tmp_dir/gcloud
   fi
 
-  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -w $(pwd) actions/cosh:latest "$@"
+  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
 }
 
 cosh java -- -version

@@ -18,6 +18,8 @@ function cosh {
     tmp_dir='/tmp'
   fi
   tmp_args="-e TMPDIR=${tmp_dir} -v ${tmp_dir}:${tmp_dir}"
+  mkdir -p $tmp_dir/cosh
+  mkdir -p $tmp_dir/cosh/bin
   
   home_args="-e HOME -v ${HOME}:/home"
   if [ ! "x$(pwd)" = "x${HOME}" ]; then
@@ -34,18 +36,19 @@ function cosh {
     ssh_auth_sock_arg="${ssh_auth_sock_arg} -v ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}"
   fi
  
-  if [ ! -x "${tmp_dir}/docker/docker" ]; then
+  if [ ! -x "${tmp_dir}/cosh/docker/docker" ]; then
     # TODO: Do sha256sum verification
-    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/curl:latest -L -o $tmp_dir/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-18.06.0-ce.tgz > /dev/null
-    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/gzip:latest -d $tmp_dir/docker.tgz
-    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/tar:latest fx $tmp_dir/docker.tar -C $tmp_dir
-    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.docker-credential-gcloud docker-credential-gcloud \"\$@\"" > $tmp_dir/docker-credential-gcloud
-    chmod +x $tmp_dir/docker-credential-gcloud
-    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.gcloud gcloud \"\$@\"" > $tmp_dir/gcloud
-    chmod +x $tmp_dir/gcloud
+    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/curl:latest -L -o $tmp_dir/cosh/docker.tgz https://download.docker.com/linux/static/stable/x86_64/docker-18.06.0-ce.tgz > /dev/null
+    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/gzip:latest -d $tmp_dir/cosh/docker.tgz
+    docker run --net=host -it --rm  ${home_args} ${tmp_args} ${dev_args} -v $(pwd):$(pwd) -w $(pwd) actions/tar:latest fx $tmp_dir/cosh/docker.tar -C $tmp_dir/cosh
+    rm -f $tmp_dir/cosh/docker.tgz
+    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.docker-credential-gcloud docker-credential-gcloud \"\$@\"" > $tmp_dir/cosh/bin/docker-credential-gcloud
+    chmod +x $tmp_dir/cosh/bin/docker-credential-gcloud
+    echo -e '#!/bin/bash'"\n/usr/local/bin/cosh --tmpdir ${tmp_dir}/cosh.gcloud gcloud \"\$@\"" > $tmp_dir/cosh/bin/gcloud
+    chmod +x $tmp_dir/cosh/bin/gcloud
   fi
 
-  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
+  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/cosh/bin/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/cosh/bin/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
 }
 
 cosh java -- -version

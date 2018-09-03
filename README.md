@@ -48,7 +48,8 @@ function cosh {
     chmod +x $tmp_dir/cosh/bin/gcloud
   fi
 
-  docker run --net=host -it --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/cosh/bin/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/cosh/bin/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
+  test -t 0 && export USE_TTY="-t"
+  docker run --net=host -i ${USE_TTY} --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/cosh/bin/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/cosh/bin/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
 }
 
 cosh java -- -version

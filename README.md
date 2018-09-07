@@ -21,7 +21,7 @@ function cosh {
   mkdir -p $tmp_dir/cosh
   mkdir -p $tmp_dir/cosh/bin
   
-  home_args="-e HOME -v ${HOME}:/home"
+  home_args="-e HOME -v ${HOME}:/container_user_home"
   if [ ! "x$(pwd)" = "x${HOME}" ]; then
     home_args="${home_args} -v ${HOME}:${HOME}"
   fi
@@ -49,7 +49,7 @@ function cosh {
   fi
 
   test -t 0 && export USE_TTY="-t"
-  docker run --net=host -i ${USE_TTY} --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/docker/docker:/sbin/docker -v $tmp_dir/cosh/bin/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/cosh/bin/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
+  docker run --net=host -i ${USE_TTY} --rm ${docker_host_args} ${home_args} ${tmp_args} ${dev_args} ${ssh_auth_sock_arg} -v $(pwd):$(pwd) -v ${tmp_dir}/cosh/docker/docker:/sbin/docker -v $tmp_dir/cosh/bin/docker-credential-gcloud:/sbin/docker-credential-gcloud -v $tmp_dir/cosh/bin/gcloud:/sbin/gcloud -w $(pwd) actions/cosh:latest "$@"
 }
 
 cosh java -- -version

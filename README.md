@@ -54,3 +54,5 @@ function cosh {
 
 cosh java -- -version
 ```
+
+Please check `selinux` settings and consider running `chcon` if you get weird `permission denied` errors.
